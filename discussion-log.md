@@ -1,6 +1,6 @@
 # 스낵킷 장부 사이트 — 토론 로그
 
-마지막 업데이트: 2026-05-16 (지출 페이지 상세 결정 + 코드 골격 작업 진입)
+마지막 업데이트: 2026-05-16 EOD (코드 골격 완성, 배포 완료, COOP 이슈 수정, 로그인 검증 대기)
 
 > 이 파일은 매뉴얼이 아니라 **토론의 현재 상태**입니다. 다음 세션에서 여기서부터 이어갑니다.
 > (`C:\working\plan\discussion-log.md`의 LLM 협업 매뉴얼 정신을 따름)
@@ -10,10 +10,12 @@
 ## 다음 세션 시작 프롬프트 (복붙용)
 
 ```
-스낵킷 장부 사이트 — discussion-log.md 읽고 "다음 결정 포인트"부터 이어가주세요.
+스낵킷 장부 — discussion-log.md 읽고 2026-05-16 EOD 상태부터 이어가주세요.
 ```
 
 메모리는 자동 로드되므로 별도 안내 불필요. 위 한 줄로 충분합니다.
+
+자세한 첫 액션은 `NEXT_SESSION_PROMPT.md` 참조.
 
 ---
 
@@ -28,9 +30,11 @@
 | 5. 트랙 기반 체크 항목 | ✅ | 6개 항목 모두 확정 |
 | 6. 스코프 1페이지 확정 | ✅ | 2026-05-16 도장 |
 | 7. 지출 페이지 상세 설계 | ✅ | 2026-05-16 도장 (B+C+A+B + 결제수단 + 영수증) |
-| 8. 코드 골격 작업 | 🔧 | 진행 중 (Firebase init, auth, 라우터, 빈 페이지) |
+| 8. 코드 골격 작업 | ✅ | 12개 파일 작성 완료 |
+| 9. GitHub Pages 배포 | ✅ | `https://snackpong.github.io/snackit-ledger/` (커밋 `2a6f7da`) |
+| 10. 로그인 흐름 검증 | ⏳ | COOP 이슈 → signInWithRedirect로 교체, 사장님 검증 대기 |
 
-**다음: 지출 페이지 1차 구현 (입력 모달 + 테이블/카드 하이브리드 + 영수증 업로드).**
+**다음 (내일 첫 액션)**: 사장님이 사이트 로그인 검증 → 성공 시 지출 페이지 1차 구현 진입.
 
 ---
 
@@ -219,6 +223,38 @@ const firebaseConfig = {
 - **LLM 협업 매뉴얼 (정신)**: `C:\working\plan\discussion-log.md`
 - **daily-sales 패턴 참조**: `C:\working\daily-sales\` (특히 `js/firebase-init.js` 보안규칙 주석)
 - **네이버 API 핵심 정보**: `memory/reference_naver_apis.md`
+
+---
+
+## 2026-05-16 작업 노트 (EOD)
+
+### 발생한 이슈와 해결
+
+- **로그인 후 페이지 전환 안 됨** (사장님 보고: "로그인 진행되지만 다음 페이지로 안 넘어감")
+  - 콘솔 에러: `Cross-Origin-Opener-Policy policy would block the window.closed call`
+  - 원인: GitHub Pages가 보내는 COOP 헤더가 `signInWithPopup`의 자식창 폴링을 차단 → 부모창의 `onAuthStateChanged` 미발화
+  - 해결: `signInWithPopup` → `signInWithRedirect`로 교체 (`getRedirectResult` 추가). 커밋 `2a6f7da` 푸시 완료
+  - **사장님 검증 미완료** (세션 종료로 중단)
+
+### 자동화 환경 확인됨
+
+- 사장님 PowerShell에 git 2.53 + gh CLI 2.92 설치됨
+- `gh auth status`: 계정 `snackpong` 인증 완료 (캐시)
+- 그래서 `git push`도 사장님 손가락 없이 자동으로 됨 (gh 자격증명 git이 자동 사용)
+
+### GitHub 리포 정보
+
+- 계정명: `snackpong` (`snackpong25` 아님)
+- 리포: `snackpong/snackit-ledger` (Public)
+- 첫 commit: `a0b63dc` — Initial commit
+- 두 번째 commit: `2a6f7da` — signInWithRedirect fix
+
+### 미해결 / 다음 세션 첫 액션
+
+1. **Firebase 인증 도메인 `snackpong.github.io` 등록 여부 확인** (Claude가 안내했으나 사장님 답 없음)
+2. **사이트 로그인 검증** — `Ctrl+Shift+R` 캐시 무시 새로고침 후 시도
+3. 검증 성공 시 → **지출 페이지 1차 구현 진입**
+4. 검증 실패 시 → F12 콘솔 에러 받아서 진단
 
 ---
 
