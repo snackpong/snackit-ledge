@@ -1,6 +1,7 @@
 import {
   GoogleAuthProvider,
-  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   signOut,
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
@@ -9,7 +10,11 @@ import { auth, ALLOWED_EMAIL } from "./firebase-init.js";
 const provider = new GoogleAuthProvider();
 
 export function loginWithGoogle() {
-  return signInWithPopup(auth, provider);
+  return signInWithRedirect(auth, provider);
+}
+
+export function processRedirect() {
+  return getRedirectResult(auth);
 }
 
 export function logout() {

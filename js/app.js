@@ -1,4 +1,4 @@
-import { loginWithGoogle, logout, watchAuth } from "./auth.js";
+import { loginWithGoogle, logout, watchAuth, processRedirect } from "./auth.js";
 import { startRouter } from "./router.js";
 
 const loginScreen = document.getElementById("login-screen");
@@ -32,6 +32,10 @@ loginBtn.addEventListener("click", async () => {
 
 logoutBtn.addEventListener("click", () => logout());
 blockedRetry.addEventListener("click", () => show(loginScreen));
+
+processRedirect().catch((e) => {
+  loginError.textContent = "로그인 처리 실패: " + (e.code || e.message || "");
+});
 
 watchAuth(
   (user) => {
