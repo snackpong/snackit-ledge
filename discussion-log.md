@@ -1,6 +1,6 @@
 # 스낵킷 장부 사이트 — 토론 로그
 
-마지막 업데이트: 2026-05-16 EOD (코드 골격 완성, 배포 완료, COOP 이슈 수정, 로그인 검증 대기)
+마지막 업데이트: 2026-05-17 EOD (Firebase Hosting 이전 + 스티치 디자인 2개 완성, 로그인 검증 여전히 미완료)
 
 > 이 파일은 매뉴얼이 아니라 **토론의 현재 상태**입니다. 다음 세션에서 여기서부터 이어갑니다.
 > (`C:\working\plan\discussion-log.md`의 LLM 협업 매뉴얼 정신을 따름)
@@ -32,9 +32,11 @@
 | 7. 지출 페이지 상세 설계 | ✅ | 2026-05-16 도장 (B+C+A+B + 결제수단 + 영수증) |
 | 8. 코드 골격 작업 | ✅ | 12개 파일 작성 완료 |
 | 9. GitHub Pages 배포 | ✅ | `https://snackpong.github.io/snackit-ledger/` (커밋 `2a6f7da`) |
-| 10. 로그인 흐름 검증 | ⏳ | COOP 이슈 → signInWithRedirect로 교체, 사장님 검증 대기 |
+| 10. Firebase Hosting 이전 | ✅ | 2026-05-17 — third-party 쿠키 차단으로 GitHub Pages에선 인증 불가. 커밋 `4700690` |
+| 11. 스티치 디자인 (지출+홈) | ✅ | 2026-05-17 — 라벤더 노트 디자인 시스템 + 지출/홈 페이지, 사장님 도장 |
+| 12. 로그인 흐름 검증 | ⏳ | `.web.app`도 별도 origin이라 또 실패. `.firebaseapp.com`에서 시도 안내했으나 사장님 검증 못 함 |
 
-**다음 (내일 첫 액션)**: 사장님이 사이트 로그인 검증 → 성공 시 지출 페이지 1차 구현 진입.
+**다음 (내일 첫 액션)**: `https://snackit-ledger.firebaseapp.com`에서 로그인 시도 → 성공 시 지출 페이지 구현 진입. 실패 시 authDomain 변경 또는 콘솔 에러 진단.
 
 ---
 
@@ -223,6 +225,60 @@ const firebaseConfig = {
 - **LLM 협업 매뉴얼 (정신)**: `C:\working\plan\discussion-log.md`
 - **daily-sales 패턴 참조**: `C:\working\daily-sales\` (특히 `js/firebase-init.js` 보안규칙 주석)
 - **네이버 API 핵심 정보**: `memory/reference_naver_apis.md`
+
+---
+
+## 2026-05-17 작업 노트 (EOD)
+
+### Firebase Hosting 이전 (GitHub Pages → Firebase)
+
+- **이유**: GitHub Pages는 `snackpong.github.io` origin인데 Firebase authDomain은 `snackit-ledger.firebaseapp.com`. Chrome의 third-party 쿠키 차단으로 `signInWithRedirect`가 silent fail (에러도 없이 redirect handler가 세션조차 못 만들고 튕김). 어제 popup→redirect 전환은 COOP는 해결했지만 third-party 쿠키 문제는 그대로였음.
+- **결정**: 같은 origin에서 사이트와 인증을 모두 서빙. Firebase Hosting으로 이전.
+- **작업**:
+  - `firebase.json`: public 루트, SPA rewrites (`**` → `/index.html`), no-cache 헤더
+  - `.firebaserc`: default project `snackit-ledger`
+  - `.gitignore`에서 `.firebaserc` 제거 (프로젝트 ID 매핑은 commit 대상)
+  - 커밋 `4700690` 푸시
+- **사장님 작업 (PowerShell)**:
+  - Firebase CLI standalone 다운로드: `curl.exe -L "https://firebase.tools/bin/win/latest" -o "$env:USERPROFILE\firebase.exe"` (약 221MB)
+  - 처음에 Invoke-WebRequest로 시도 → PowerShell 5.1의 알려진 메모리 버퍼링 버그로 매우 느림 → curl.exe로 전환
+  - `firebase login`은 이전 자격증명 캐시 사용 (`Already logged in`)
+  - `firebase deploy --only hosting` 성공 → `https://snackit-ledger.web.app`
+- **GitHub Pages도 그대로 유지** (옮긴 게 아니라 추가 배포)
+
+### 여전히 로그인 안 됨 — 도메인 이슈 진단 미완
+
+- `.web.app`과 `.firebaseapp.com`은 **Public Suffix List 기준 별도 site/origin** — Google이 둘 다 운영하지만 사용자 사이트는 분리된 origin.
+- 따라서 `https://snackit-ledger.web.app`에서 시도해도 authDomain(`.firebaseapp.com`)과 third-party 관계 그대로 → 같은 증상.
+- **마지막 안내**: `https://snackit-ledger.firebaseapp.com`(authDomain과 정확히 same-origin)에서 시도하라고 안내. 사장님 검증 전 세션 종료.
+- **만약 firebaseapp.com에서도 실패하면**: authDomain을 `snackit-ledger.web.app`으로 변경(코드 1줄), 또는 다른 진단(콘솔 에러).
+
+### 미해결 보안 이슈 — 67 files 배포
+
+- `firebase deploy` 출력에 `found 67 files in .` — 실제 사이트 파일은 약 10개(index.html + css 1 + js 7~8). 65개 가량이 의도치 않게 업로드됨.
+- 추정: `**/.*` ignore 패턴이 `.git/` 디렉토리 자체는 매칭하지만 그 내부 파일은 누락. 또는 다른 디렉토리.
+- **위험**: `.git/` 통째 노출 시 git 히스토리 + 메모리 인덱스(.claude/) 등 인터넷 공개.
+- **다음 세션 작업**: ignore 패턴 보강(`.git/**`, `.claude/**` 명시 추가) + 재배포.
+
+### 스티치 디자인 — 라벤더 노트
+
+- **프로젝트 ID**: `338452163588874419`
+- **디자인 시스템 assetId**: `13456382476104129091` ("스낵킷 장부 — 라벤더 노트")
+  - colorMode: LIGHT, colorVariant: TONAL_SPOT, customColor: #A78BFA
+  - headlineFont: PLUS_JAKARTA_SANS, bodyFont/labelFont: INTER
+  - roundness: ROUND_EIGHT
+  - 톤: 흰색 베이스 + 라벤더 액센트, 그라데이션 절대 X, 미세 보더(#E8E0F5), 숫자 위계 강함
+- **생성된 화면 2개** (사장님 도장 "디자인 좋습니다"):
+  - 지출 페이지 (screenId `fdf642005b594c728830165d3c9b72e5`): 상단 합계/건수 칩 → 「+ 지출 입력」 보라 버튼 → 필터/검색 → 표(날짜/카테고리칩/거래처/금액/결제수단/영수증/메모/수정삭제) → 페이지네이션
+  - 홈 페이지 (screenId `7311d8bb50744d649c13107651729f7b`): 상단 거대 숫자 "이번 달 순이익 +₩2,143,500" → 좌측 일별 히트맵 캘린더 + 우측 6개월 막대그래프 → 하단 카테고리 미니카드 3개
+- **확인 URL**: https://stitch.withgoogle.com/?pid=338452163588874419
+- **다음**: 로그인 검증 후 → 디자인을 실제 HTML/CSS로 옮김 (지출 페이지 먼저)
+
+### Claude 실수 노트 — 다음에 같은 길 안 가기
+
+- **호스팅 이전을 처음부터 권장했어야**: 어제 COOP 진단 시점에 `.web.app`/`.firebaseapp.com`이 별도 origin이라는 점도 미리 짚었어야 함. 두 단계 만에 같은 결론에 다시 도착.
+- **사장님께 첫 호스팅 안내 시 줄바꿈 끼는 한 줄 명령 제공**: PowerShell 폭에 안 맞아 두 줄로 끊기는 사고 발생. 다음엔 처음부터 3줄 분리 제공.
+- **PowerShell 5.1의 Invoke-WebRequest는 큰 파일에 사용 금지**: 메모리 버퍼링 버그. 처음부터 `curl.exe` 안내했어야.
 
 ---
 
