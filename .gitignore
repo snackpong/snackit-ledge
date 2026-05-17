@@ -5,5 +5,4 @@ Thumbs.db
 *.log
 node_modules/
 .firebase/
-.firebaserc
 firebase-debug.log
