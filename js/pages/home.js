@@ -1,4 +1,4 @@
-export function renderHome(root) {
+function renderHome(root) {
   root.innerHTML = `
     <section class="page">
       <h1>홈</h1>

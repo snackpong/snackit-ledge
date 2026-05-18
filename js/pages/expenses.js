@@ -1,4 +1,4 @@
-export function renderExpenses(root) {
+function renderExpenses(root) {
   root.innerHTML = `
     <section class="page">
       <header class="page-header">

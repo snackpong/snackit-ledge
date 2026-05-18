@@ -1,4 +1,4 @@
-export function renderRevenue(root) {
+function renderRevenue(root) {
   root.innerHTML = `
     <section class="page">
       <h1>이익</h1>
