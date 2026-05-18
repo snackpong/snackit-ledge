@@ -71,6 +71,22 @@ button {
 
 .card .btn { width: 100%; margin-top: 4px; }
 
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
 .btn {
   display: inline-block;
   padding: 10px 16px;
@@ -82,6 +98,10 @@ button {
   transition: background 0.15s;
 }
 .btn:hover { background: #f3f4f6; }
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
 
 .btn-primary {
   background: var(--primary);
