@@ -1,7 +1,5 @@
-function loginWithGoogle() {
-  const provider = new firebase.auth.GoogleAuthProvider();
-  provider.setCustomParameters({ prompt: 'select_account' });
-  return auth.signInWithPopup(provider);
+function loginWithEmail(email, password) {
+  return auth.signInWithEmailAndPassword(email, password);
 }
 
 function logout() {

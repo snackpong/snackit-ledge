@@ -53,6 +53,24 @@ button {
 .muted { color: var(--muted); }
 .error { color: var(--danger); min-height: 1.5em; }
 
+.input {
+  display: block;
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 14px;
+  font-family: inherit;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  margin-bottom: 10px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.input:focus { border-color: var(--primary); }
+
+.card .btn { width: 100%; margin-top: 4px; }
+
 .btn {
   display: inline-block;
   padding: 10px 16px;

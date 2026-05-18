@@ -9,6 +9,8 @@ const userEmail = document.getElementById('user-email');
 const mountEl = document.getElementById('page-mount');
 const navEl = document.getElementById('nav');
 const loginError = document.getElementById('login-error');
+const loginEmailEl = document.getElementById('login-email');
+const loginPasswordEl = document.getElementById('login-password');
 
 let routerStarted = false;
 
@@ -19,10 +21,32 @@ function show(screen) {
 }
 
 loginBtn.addEventListener('click', () => {
+  const email = loginEmailEl.value.trim();
+  const password = loginPasswordEl.value;
   loginError.textContent = '';
-  loginWithGoogle().catch(e => {
-    loginError.textContent = '로그인 실패: ' + (e.message || '알 수 없는 오류');
+
+  if (!email || !password) {
+    loginError.textContent = '이메일과 비밀번호를 입력해주세요.';
+    return;
+  }
+
+  loginBtn.disabled = true;
+  loginWithEmail(email, password).catch(e => {
+    const msg = {
+      'auth/invalid-credential': '이메일 또는 비밀번호가 틀렸습니다.',
+      'auth/user-not-found': '이메일 또는 비밀번호가 틀렸습니다.',
+      'auth/wrong-password': '이메일 또는 비밀번호가 틀렸습니다.',
+      'auth/invalid-email': '이메일 형식이 올바르지 않습니다.',
+      'auth/too-many-requests': '시도 횟수가 너무 많습니다. 잠시 후 다시 시도해주세요.',
+    };
+    loginError.textContent = msg[e.code] || ('로그인 실패: ' + e.message);
+  }).finally(() => {
+    loginBtn.disabled = false;
   });
+});
+
+loginPasswordEl.addEventListener('keydown', e => {
+  if (e.key === 'Enter') loginBtn.click();
 });
 
 logoutBtn.addEventListener('click', () => logout());
