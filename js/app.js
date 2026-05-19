@@ -66,7 +66,7 @@ googleLoginBtn.addEventListener('click', () => {
 loginBtn.addEventListener('click', () => {
   const email = loginEmailEl.value.trim();
   const password = loginPasswordEl.value;
-  loginError.textContent = '';
+  loginError.textContent = '로그인 시도 중...';
 
   if (!email || !password) {
     loginError.textContent = '이메일과 비밀번호를 입력해주세요.';
