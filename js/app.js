@@ -74,7 +74,10 @@ loginBtn.addEventListener('click', () => {
   }
 
   setLoginBusy(true);
-  loginWithEmail(email, password).catch(e => {
+  loginWithEmail(email, password).then(() => {
+    alert('로그인 성공! onAuthStateChanged 기다리는 중...');
+  }).catch(e => {
+    alert('로그인 실패: ' + e.code + '\n' + e.message);
     reportLoginError(e);
   }).finally(() => {
     setLoginBusy(false);
