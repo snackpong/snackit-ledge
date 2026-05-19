@@ -7,7 +7,7 @@ const firebaseConfig = {
   appId: "1:265027158574:web:83ec42fe926f26f08815bf"
 };
 
-const ALLOWED_EMAIL = "snackpong25@gmail.com";
+const ALLOWED_EMAILS = ["snackpong@naver.com", "snackpong25@gmail.com"];
 
 firebase.initializeApp(firebaseConfig);
 

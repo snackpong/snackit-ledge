@@ -4,7 +4,8 @@ service cloud.firestore {
     function isOwner() {
       return request.auth != null
         && request.auth.token.email_verified == true
-        && request.auth.token.email == 'snackpong25@gmail.com';
+        && (request.auth.token.email == 'snackpong@naver.com'
+            || request.auth.token.email == 'snackpong25@gmail.com');
     }
     match /store/main/{document=**} {
       allow read, write: if isOwner();
