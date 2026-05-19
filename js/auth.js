@@ -13,6 +13,7 @@ function logout() {
 
 function watchAuth(onAllowed, onBlocked, onLoggedOut) {
   auth.onAuthStateChanged(user => {
+    alert('onAuthStateChanged: ' + (user ? user.email : 'null'));
     if (!user) {
       onLoggedOut();
       return;
