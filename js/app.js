@@ -14,7 +14,6 @@ const loginEmailEl = document.getElementById('login-email');
 const loginPasswordEl = document.getElementById('login-password');
 
 let routerStarted = false;
-let redirectChecked = false;
 
 function show(screen) {
   loginScreen.hidden = screen !== loginScreen;
@@ -29,8 +28,6 @@ function getAuthErrorMessage(e) {
     'auth/invalid-credential': '이메일 또는 비밀번호가 틀렸습니다.',
     'auth/invalid-email': '이메일 형식이 올바르지 않습니다.',
     'auth/operation-not-allowed': 'Firebase Console에서 Google 로그인이 꺼져 있습니다.',
-    'auth/popup-blocked': '브라우저가 팝업을 차단했습니다. redirect 방식으로 다시 시도합니다.',
-    'auth/popup-closed-by-user': '로그인 팝업이 완료 전에 닫혔습니다. 다시 시도해주세요.',
     'auth/too-many-requests': '시도 횟수가 너무 많습니다. 잠시 후 다시 시도해주세요.',
     'auth/unauthorized-domain': 'Firebase Authorized domains에 현재 도메인이 없습니다.',
     'auth/user-not-found': '이메일 또는 비밀번호가 틀렸습니다.',
@@ -59,13 +56,8 @@ googleLoginBtn.addEventListener('click', () => {
   loginError.textContent = '';
   setLoginBusy(true);
 
-  loginWithGooglePopup().catch(e => {
-    if (e.code === 'auth/popup-blocked') {
-      loginError.textContent = getAuthErrorMessage(e);
-      return loginWithGoogleRedirect();
-    }
+  loginWithGoogle().catch(e => {
     reportLoginError(e);
-    return null;
   }).finally(() => {
     setLoginBusy(false);
   });
@@ -96,15 +88,6 @@ loginPasswordEl.addEventListener('keydown', e => {
 logoutBtn.addEventListener('click', () => logout());
 blockedRetry.addEventListener('click', () => show(loginScreen));
 
-getGoogleRedirectResult().catch(e => {
-  reportLoginError(e);
-}).finally(() => {
-  redirectChecked = true;
-  if (!auth.currentUser && loginScreen.hidden && appScreen.hidden && blockedScreen.hidden) {
-    show(loginScreen);
-  }
-});
-
 watchAuth(
   (user) => {
     userEmail.textContent = user.email;
@@ -119,6 +102,6 @@ watchAuth(
     show(blockedScreen);
   },
   () => {
-    if (redirectChecked) show(loginScreen);
+    show(loginScreen);
   }
 );
