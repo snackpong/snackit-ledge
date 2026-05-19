@@ -1,5 +1,12 @@
 {
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "storage": {
+    "rules": "storage.rules"
+  },
   "hosting": {
+    "site": "snackit-ledger",
     "public": ".",
     "ignore": [
       "firebase.json",
@@ -7,7 +14,9 @@
       "**/.*",
       "**/node_modules/**",
       "discussion-log.md",
-      "NEXT_SESSION_PROMPT.md"
+      "NEXT_SESSION_PROMPT.md",
+      "shot/**",
+      "*.rules"
     ],
     "rewrites": [
       { "source": "**", "destination": "/index.html" }
