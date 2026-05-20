@@ -1,99 +1,101 @@
 # 다음 세션 시작 프롬프트
 
-마지막 작업: 2026-05-17 EOD
+마지막 작업: 2026-05-20 EOD
 
 ---
 
-## 📋 복붙용 한 줄
+## 복붙용 한 줄
 
 ```
-스낵킷 장부 — discussion-log.md 읽고 2026-05-17 EOD 상태부터 이어가주세요.
+스낵킷 장부 — NEXT_SESSION_PROMPT.md 읽고 2026-05-20 EOD 상태부터 이어가주세요.
 ```
 
-위 한 줄이면 충분합니다. 메모리와 discussion-log.md가 자동으로 로드됩니다.
+---
+
+## 현재 상태 (2026-05-20 EOD)
+
+- **GitHub**: `https://github.com/snackpong/snackit-ledge` (레포명 r 없음)
+- **배포 URL**: `https://snackpong.github.io/snackit-ledge/` (GitHub Pages, 정상 작동)
+- **Firebase 프로젝트**: `snackit-ledge` (신규 생성)
+  - Authentication: Google 로그인만 활성화 ✅
+  - 승인된 도메인: `snackpong.github.io` 추가 ✅
+  - Firestore, Storage: 시작됨 (보안 규칙 아직 미적용)
+- **로그인**: Google 로그인 정상 작동 확인 ✅
+- **핵심 버그 수정**: CSS `[hidden] { display: none !important }` — 로그인 후 화면 전환 안 되던 버그 수정 ✅
+- **Stitch 디자인 v2**: 프로젝트 "스낵킷 장부 v2 — Warm Editorial" 생성
+  - 디자인 시스템: 테라코타 #D4622A + 포레스트그린 #2D6A4F + 아이보리 배경
+  - 폰트: Bricolage Grotesque (헤드라인) + DM Sans (본문)
+  - 화면 4개 생성: 지출(데스크탑 에디토리얼), 로그인(스플릿), 지출목록(모바일), 지출추가 바텀시트(모바일)
 
 ---
 
-## 🎯 현재 상태 (2026-05-17 EOD)
+## 다음 세션 첫 액션
 
-- **Firebase Hosting 이전 완료**: `https://snackit-ledger.web.app` 및 `https://snackit-ledger.firebaseapp.com` 둘 다 활성
-- **마지막 커밋**: `4700690` — hosting config 추가
-- **여전히 로그인 안 됨**: `.web.app`에서 시도 시 같은 증상 (third-party 쿠키 차단). 원인: `.web.app`과 `.firebaseapp.com`은 PSL 기준 별도 origin → authDomain과 사이트가 여전히 다른 origin
-- **스티치 디자인 완료** (사장님 도장): 라벤더 노트 디자인 시스템 + 지출/홈 페이지 2개
+### ① Firestore/Storage 보안 규칙 적용
+Firebase Console에서 아래 규칙 붙여넣기:
 
----
+**Firestore** (Console → Firestore → 규칙):
+```
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isOwner() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && request.auth.token.email == 'snackpong25@gmail.com';
+    }
+    match /store/main/{document=**} {
+      allow read, write: if isOwner();
+    }
+  }
+}
+```
 
-## ✅ 다음 세션 첫 액션 (사장님 순서대로)
+**Storage** (Console → Storage → 규칙):
+```
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isOwner() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && request.auth.token.email == 'snackpong25@gmail.com';
+    }
+    match /{allPaths=**} {
+      allow read, write: if isOwner();
+    }
+  }
+}
+```
 
-### ① 사이트 로그인 검증 — **authDomain과 같은 origin에서 시도**
+### ② 지출 페이지 구현 시작
+Stitch v2 디자인을 참고해서 실제 코드로 구현.
+구현 순서: 지출 페이지 → 홈 페이지 → 이익 페이지
 
-1. 새 탭에서 접속: **https://snackit-ledger.firebaseapp.com** (`.web.app` 아님!)
-2. **`Ctrl + Shift + R`** 강제 새로고침
-3. 「Google로 로그인」 클릭 → 계정 선택 화면 → `snackpong25@gmail.com` 선택
-4. 사이트 복귀 → 상단 [홈][이익][지출] 네비 표시되면 **성공**
-
-### ② 막히면
-
-- F12 → Console 빨간 에러 통째로 캡처
-- Network 탭 → `__/auth/...` 경로 요청 상태 (빨간색 있나)
-- 어느 단계에서 멈췄는지 (로그인 화면 / 흰 화면 / 다른 화면)
-
-### ③ `.firebaseapp.com`에서도 실패할 경우 대안
-
-- **A안**: `js/firebase-init.js`의 `authDomain`을 `snackit-ledger.web.app`으로 변경 → `.web.app` URL과 same-origin
-- **B안**: Google Cloud Console에서 OAuth 2.0 client에 `.web.app` redirect URI 등록 확인
-- **C안**: 콘솔 에러 보고 다른 진단 (인증 도메인 미등록, OAuth scope 등)
-
----
-
-## 🛠 검증 성공 후 우선 처리할 보안 이슈
-
-**67 files 배포 문제**: 배포 시 `found 67 files in .` 출력 — 실제 사이트 파일 10개뿐인데 약 65개가 의도치 않게 업로드됨. `.git/` 또는 `.claude/` 통째 노출 위험.
-
-**작업**:
-1. `firebase.json` ignore 패턴 보강:
-   ```json
-   "ignore": [
-     "firebase.json", ".firebaserc",
-     ".git/**", ".github/**", ".claude/**", ".firebase/**",
-     "**/.*", "**/node_modules/**",
-     "discussion-log.md", "NEXT_SESSION_PROMPT.md", "README.md"
-   ]
-   ```
-2. 재배포: `& "$env:USERPROFILE\firebase.exe" deploy --only hosting`
-3. 출력에 `found N files`가 10 안팎인지 확인
-
----
-
-## 🚀 그 후 진입할 작업
-
-**지출 페이지 1차 구현** (실제 HTML/CSS/JS):
-
-- 스티치 디자인(라벤더 노트, 지출 페이지)을 실제 코드로 옮김
-- 입력 모달 (날짜/카테고리/거래처/금액/결제수단/메모/영수증)
-- Firestore 실시간 구독 + 테이블/카드 하이브리드
-- 카테고리·거래처·결제수단 자동완성 + 자동 누적
-- 영수증 다중 파일 업로드 + 인앱 라이트박스 미리보기
-- 이달 누계 칩
-- 수정/삭제 (모달 재활용 + confirm)
-
-**선결조건**: Firestore/Storage 보안 규칙 게시 (Claude가 텍스트 제공 → 사장님이 콘솔에 붙여넣기). 코드 작성 직전 진행.
+지출 페이지 기능:
+- 이달 누계 칩 (상단)
+- 지출 목록 (날짜 그룹, 카드형)
+- + 지출 추가 모달
+  - 날짜 / 카테고리(자유입력+자동완성) / 금액 / 거래처 / 결제수단(라디오) / 메모 / 영수증 첨부
+- Firestore: `store/main/expenses/{auto-id}` 스키마 (discussion-log.md 참조)
 
 ---
 
-## 📂 참고
+## Claude가 기억해야 할 것
 
-- 디스커션 로그: `discussion-log.md` (이번 세션 결정 다 반영)
+1. **레포명**: `snackit-ledge` (r 없음) — GitHub, Firebase 모두 동일
+2. **배포**: `git push origin main` → GitHub Pages 자동 배포 (Firebase deploy 아님)
+3. **이메일 로그인 없음**: Google 로그인만. 이메일/비밀번호 관련 코드 건드리지 말 것
+4. **CSS**: `[hidden] { display: none !important }` — styles.css 두 번째 줄, 절대 삭제 금지
+5. **허용 이메일**: `snackpong@naver.com`, `snackpong25@gmail.com` (firebase-init.js ALLOWED_EMAILS)
+6. **Stitch 프로젝트 ID**: `1868734977088419865` / 디자인시스템 ID: `assets/6581157065052965287`
+
+---
+
+## 참고
+
+- discussion-log.md: `C:\working\snackit-ledger\discussion-log.md`
 - 메모리 인덱스: `C:\Users\c\.claude\projects\C--working-snackit-ledger\MEMORY.md`
-- 리포: https://github.com/snackpong/snackit-ledger
-- Firebase 콘솔: https://console.firebase.google.com/project/snackit-ledger/overview
-- 스티치 프로젝트: https://stitch.withgoogle.com/?pid=338452163588874419 (디자인 시스템 `13456382476104129091`)
-
----
-
-## 💡 Claude가 기억해야 할 트랩
-
-1. **`.web.app`과 `.firebaseapp.com`은 별도 origin** — 사장님이 어느 URL에서 시도 중인지 항상 확인
-2. **PowerShell 5.1의 Invoke-WebRequest는 큰 파일에 매우 느림** — 큰 파일은 `curl.exe -L` 사용 (Windows 10/11 기본 내장)
-3. **PowerShell 5.1에서 `&&` 안 됨** — 명령 체이닝은 `;` 사용. 단 폭이 좁아 줄바꿈 끼면 명령 깨짐 → 긴 명령은 3줄로 분리 권장
-4. **`.firebaserc`는 commit 대상** — 기본 .gitignore 템플릿에 포함되는 경우 있음, 제거 필요
+- GitHub: `https://github.com/snackpong/snackit-ledge`
+- GitHub Pages: `https://snackpong.github.io/snackit-ledge/`
+- Firebase Console: `https://console.firebase.google.com/project/snackit-ledge/overview`
