@@ -4,6 +4,7 @@ function loginWithEmail(email, password) {
 
 function loginWithGoogle() {
   const provider = new firebase.auth.GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: 'select_account' });
   return auth.signInWithPopup(provider);
 }
 
@@ -13,7 +14,6 @@ function logout() {
 
 function watchAuth(onAllowed, onBlocked, onLoggedOut) {
   auth.onAuthStateChanged(user => {
-    alert('onAuthStateChanged: ' + (user ? user.email : 'null'));
     if (!user) {
       onLoggedOut();
       return;

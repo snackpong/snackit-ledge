@@ -1,10 +1,10 @@
 const firebaseConfig = {
-  apiKey: "AIzaSyCGjuUYwz22g5HQWd7MOnKG5at2eD4Rp_Q",
-  authDomain: "snackit-ledger.firebaseapp.com",
-  projectId: "snackit-ledger",
-  storageBucket: "snackit-ledger.firebasestorage.app",
-  messagingSenderId: "265027158574",
-  appId: "1:265027158574:web:83ec42fe926f26f08815bf"
+  apiKey: "AIzaSyALLN63KMonZT89bImJWKbzuF0sV48aQVA",
+  authDomain: "snackit-ledge.firebaseapp.com",
+  projectId: "snackit-ledge",
+  storageBucket: "snackit-ledge.firebasestorage.app",
+  messagingSenderId: "36304628619",
+  appId: "1:36304628619:web:1cb2601e1709801ef51d8e"
 };
 
 const ALLOWED_EMAILS = ["snackpong@naver.com", "snackpong25@gmail.com"];
@@ -14,4 +14,3 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 const storage = firebase.storage();
-

@@ -6,3 +6,11 @@ Thumbs.db
 node_modules/
 .firebase/
 firebase-debug.log
+
+# 로컬 테스트 전용
+index-local.html
+js/firebase-local.js
+
+# 개발 메모
+.claude/
+shot/

@@ -28,6 +28,8 @@ function getAuthErrorMessage(e) {
     'auth/invalid-credential': '이메일 또는 비밀번호가 틀렸습니다.',
     'auth/invalid-email': '이메일 형식이 올바르지 않습니다.',
     'auth/operation-not-allowed': 'Firebase Console에서 Google 로그인이 꺼져 있습니다.',
+    'auth/popup-blocked': '브라우저가 팝업을 차단했습니다. 팝업 차단을 해제해주세요.',
+    'auth/popup-closed-by-user': '로그인 팝업이 완료 전에 닫혔습니다. 다시 시도해주세요.',
     'auth/too-many-requests': '시도 횟수가 너무 많습니다. 잠시 후 다시 시도해주세요.',
     'auth/unauthorized-domain': 'Firebase Authorized domains에 현재 도메인이 없습니다.',
     'auth/user-not-found': '이메일 또는 비밀번호가 틀렸습니다.',
@@ -66,7 +68,7 @@ googleLoginBtn.addEventListener('click', () => {
 loginBtn.addEventListener('click', () => {
   const email = loginEmailEl.value.trim();
   const password = loginPasswordEl.value;
-  loginError.textContent = '로그인 시도 중...';
+  loginError.textContent = '';
 
   if (!email || !password) {
     loginError.textContent = '이메일과 비밀번호를 입력해주세요.';
@@ -74,10 +76,7 @@ loginBtn.addEventListener('click', () => {
   }
 
   setLoginBusy(true);
-  loginWithEmail(email, password).then(() => {
-    alert('로그인 성공! onAuthStateChanged 기다리는 중...');
-  }).catch(e => {
-    alert('로그인 실패: ' + e.code + '\n' + e.message);
+  loginWithEmail(email, password).catch(e => {
     reportLoginError(e);
   }).finally(() => {
     setLoginBusy(false);
